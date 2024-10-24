@@ -1,6 +1,6 @@
 pandas
 plotly
 streamlit
-statsmodels
 plotly
+scikit-learn
 torch
