@@ -251,7 +251,7 @@ with tab1:
     ✔ E-mail: {pessoas_email_ajustado}
     ✔ Chat: {pessoas_chat_ajustado} 
     ✔ WhatsApp: {pessoas_whatsapp_ajustado}
-    ➤ Total do time : {pessoas_email_ajustado + pessoas_chat_ajustado + pessoas_whatsapp_ajustado}''')
+    ➤ Total do time: {pessoas_email_ajustado + pessoas_chat_ajustado + pessoas_whatsapp_ajustado}''')
     st.plotly_chart(grafico_Q1_1, use_container_width=True)
 
 # Questão 2
