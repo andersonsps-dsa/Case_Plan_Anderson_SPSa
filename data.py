@@ -176,7 +176,7 @@ df_general_2 = df_general.copy(deep=True)
 df_general_2['Semana'] = df_general_2['Dia'].dt.day_name().map(semana)
 df_general_2 = df_general_2.loc[df_general_2['Dia'] > '2024-01-31']
 df_predit02 = df_general_2.groupby(['Semana'], as_index = False).agg({'Previstos': 'sum', 'Reais': 'sum'})
-df_predit02 = df_predit02.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
+df_predit02 = df_predit02.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=False)
 # base_model_3 = df_predit02.copy(deep=True)
 
 # Questão 1
