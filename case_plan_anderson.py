@@ -193,7 +193,7 @@ def graphic_semana(dataframe, period_col, real_col, predict_col, df_futuro):
     fig_model_sem.add_trace(go.Bar(
         x=df_futuro[period_col],
         y=df_futuro[predict_col],
-        name='Previstos (Período Futuro)',
+        name='Previstos (Para os próximos 7 dias)',
         marker_color='black',
         opacity=0.5,
         text=round(df_futuro[predict_col], 1),
