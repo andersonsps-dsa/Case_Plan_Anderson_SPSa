@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
+from torch.utils.data import TensorDataset, DataLoader
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 import pickle
 
@@ -87,32 +90,45 @@ dis_solic_semana_0 = distr_soli_por_grupo_Hora11.groupby(['Semana', 'Hora']).agg
 dis_solic_semana = dis_solic_semana_0.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=False)
 ###################################
 # Model
-base_nn = base.groupby(['Dia'], as_index = False).agg({'Total Geral': 'sum'})
-X = base_nn[['Total Geral']]#[:-10] # 19 dados
-y = base_nn[['Total Geral']]#[len(X):] # 10 dados
+base_nn = base.groupby(['Dia','Semana'], as_index = False).agg({'Total Geral': 'sum'})
+X_0 = base_nn[['Total Geral','Semana']]
+y_0 = base_nn[['Total Geral','Semana']]
 
-# X = base_nn[['Total Geral']][:-10]
-# y = base_nn[['Total Geral']][:-10]
+# encoder = LabelEncoder()
+encoder = OneHotEncoder(sparse_output = False, dtype='int') # drop = 'first'
+X_encoder = encoder.fit_transform(X_0[['Semana']])
+y_encoder = encoder.fit_transform(y_0[['Semana']])
+df_encoder = pd.DataFrame(X_encoder, columns = ['S1', 'S2', 'S3','S4', 'S5', 'S6', 'S7'])
+base_encoded = pd.concat([base_nn, df_encoder], axis = 1)
+
+base_encoded_WEEK = base_encoded.copy(deep=True)
+base_encoded_WEEK = base_encoded_WEEK.drop(['Dia','Total Geral'], axis =1)
+base_encoded_WEEK = base_encoded_WEEK.groupby(['Semana','S1', 'S2', 'S3','S4', 'S5', 'S7'],as_index = False).count()
+base_encoded_WEEK['code'] = base_encoded_WEEK[['S1', 'S2', 'S3','S4', 'S5', 'S7']].apply(lambda row: ''.join(row.astype(str)), axis = 1)
+
+X_1 = base_encoded.iloc[:,2:]
+y_1 = base_encoded[['Total Geral']]
 
 scaler = MinMaxScaler()
-X_scaled = scaler.fit_transform(X)
-y_scaled = scaler.fit_transform(y)
+X_scaled = scaler.fit_transform(X_1)
+y_scaled = scaler.fit_transform(y_1)
 
-# X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=123, shuffle = False)
+torch.manual_seed(123)
+X_train, X_valid, y_train, y_valid = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=123, shuffle = False)
 
-data_train = torch.tensor(X_scaled, dtype=torch.float32)
-data_pred = torch.tensor(y_scaled, dtype=torch.float32)
+X_data_pred = torch.tensor(X_scaled, dtype=torch.float32)
+y_data_pred = torch.tensor(y_scaled, dtype=torch.float32)
 
-# X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-# y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
-# X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
-# y_test_tensor = torch.tensor(y_test, dtype=torch.float32)
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
+X_valid_tensor = torch.tensor(X_valid, dtype=torch.float32)
+y_valid_tensor = torch.tensor(y_valid, dtype=torch.float32)
 
 class model_NN_LSTM(nn.Module):
     def __init__(self):
         super(model_NN_LSTM, self).__init__()
-        self.rnn = nn.RNN(input_size=1, hidden_size=15, num_layers=1, batch_first=True)
-        self.linear = nn.Linear(15, 1)
+        self.rnn = nn.RNN(input_size= 8, hidden_size=20, num_layers=3, batch_first=True)
+        self.linear = nn.Linear(20, 1)
 
     def forward(self, x):
         x, _ = self.rnn(x)
@@ -121,56 +137,69 @@ class model_NN_LSTM(nn.Module):
 
 modelo = model_NN_LSTM()
 criterio = nn.MSELoss()
-otimizador = torch.optim.Adam(modelo.parameters(), lr=0.001)
+otimizador = torch.optim.Adam(modelo.parameters(), lr=0.001 , weight_decay= 0.0001)
+dataset = TensorDataset(X_train_tensor,y_train_tensor)
+data_load = DataLoader(dataset, batch_size = 100, shuffle=False)
 
-epochs = 5000
-for epoch in range(epochs):
+num_epochs = 10000
+for epoch in range(num_epochs):
     modelo.train()
-    otimizador.zero_grad()
-    y_pred = modelo(data_train)
-    loss = criterio(y_pred, data_train)
-    loss.backward()
-    otimizador.step()
+    running_loss = 0.0
+
+    for batch_x, batch_y in data_load:
+        otimizador.zero_grad()
+        y_pred = modelo(batch_x)
+        loss = criterio(y_pred, batch_y)
+        loss.backward()
+        otimizador.step()
+        running_loss += loss.item() * batch_x.size(0)
+    
+    epoch_avg_loss = running_loss / len(data_load.dataset)
+    # if (epoch) % 1000 == 0:
+    #     print(f'[{epoch} / {num_epochs}] Average Loss: {epoch_avg_loss:.10f}')
 
 future_pred = []
-num_dias = 5
-aprendizado_historico = len(y_scaled)
-ult_valor_conh = data_train[-aprendizado_historico:].detach().numpy().reshape(1, aprendizado_historico, -1)
+num_dias = 7
+aprendizado_historico = 20 #len(y_scaled)
+ult_valor_conh = X_data_pred[-aprendizado_historico:].detach().numpy().reshape(1, aprendizado_historico, X_data_pred.size(1))
 
 modelo.eval()
 with torch.no_grad():
-    predict = modelo(data_pred)
-    test_loss = criterio(predict, data_pred)
-    mse = mean_squared_error(data_pred.numpy(), predict.numpy())
+    predict = modelo(X_data_pred)
+    test_loss = criterio(predict, y_data_pred)
+    mse = mean_squared_error(y_data_pred.numpy(), predict.numpy())
     print(f'Test Loss: {test_loss.item():.6f}, MSE: {mse:.4f}')
 
     for _ in range(num_dias):
       pred_fut = modelo(torch.tensor(ult_valor_conh, dtype = torch.float32))
       pred_value = pred_fut.numpy().flatten()[-aprendizado_historico]
       future_pred.append(pred_value.item())
-      ult_valor_conh = np.append(ult_valor_conh[:,1:, :], [[[pred_value]]], axis=1)
+    #   pred_value_expanded = np.array([[[pred_value, 0]]])
+      pred_value_expanded = np.array([[[pred_value] + [0] * (X_data_pred.size(1) - 1)]])
+      ult_valor_conh = np.append(ult_valor_conh[:,1:, :], pred_value_expanded, axis=1)
 
-pred_inv = scaler.inverse_transform(predict.numpy())
-test_inv = scaler.inverse_transform(data_pred.numpy())
+pred_inv = scaler.inverse_transform(predict.numpy()).astype(int)
+test_inv = scaler.inverse_transform(y_data_pred.numpy()).astype(int)
 
 dias = base_nn['Dia'].reset_index(drop=True)
-# dias = base_nn[len(data_train) : int(len(base_nn)/2)]['Dia'].reset_index(drop=True)
 Real_data= pd.Series(test_inv[:].flatten(), name='Reais').reset_index(drop=True)
 Pred_data = pd.Series(pred_inv.flatten(), name='Previstos').reset_index(drop=True)
 df_Real_Pred = pd.DataFrame({'Dia': dias, 'Reais': Real_data, 'Previstos': Pred_data})
 
 ultimo_dia = df_Real_Pred['Dia'].max() + pd.to_timedelta(1, unit='D')
-pred_fut_inv = scaler.inverse_transform(np.array(future_pred).reshape(-1, 1))
+pred_fut_inv = scaler.inverse_transform(np.array(future_pred).reshape(-1, 1)).astype(int)
 fut_dia = [ultimo_dia + pd.DateOffset(days=i) for i in range(0, num_dias)]
 future = pd.DataFrame({'Dia': fut_dia, 'Previstos': pred_fut_inv.flatten()})
 df_general = pd.concat([df_Real_Pred[['Dia', 'Reais', 'Previstos']],future], ignore_index=True)
+#####
 
 df_general_1 = df_general.copy(deep=True)
 df_general_1['Semana'] = df_general_1['Dia'].dt.day_name().map(semana)
+# df_general_1 = df_general_1.loc[(df_general_1['Dia'] >= '2024-01-17') & (df_general_1['Dia'] <= '2024-01-31')]
 df_general_1 = df_general_1.loc[df_general_1['Dia'] <= '2024-01-31']
-df_predit01 = df_general_1.groupby(['Semana'], as_index = False).agg({'Previstos': 'sum', 'Reais': 'sum'})
+df_predit01 = df_general_1.groupby(['Semana'], as_index = False).agg({'Previstos': 'mean', 'Reais': 'mean'})
 df_predit01 = df_predit01.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
-base_model_2 = df_predit01.copy(deep=True)
+# base_model_2 = df_predit01.copy(deep=True)
 
 df_general_2 = df_general.copy(deep=True)
 df_general_2['Semana'] = df_general_2['Dia'].dt.day_name().map(semana)
