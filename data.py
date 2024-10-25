@@ -84,7 +84,7 @@ distr_soli_por_grupo_Hora0_1 = pd.melt(base,
 distr_soli_por_grupo_Hora0_1['Solicitacoes'] = pd.to_numeric(distr_soli_por_grupo_Hora0_1['Solicitacoes'], errors='coerce')
 distr_soli_por_grupo_Hora11 = distr_soli_por_grupo_Hora0_1.loc[distr_soli_por_grupo_Hora0_1['Grupo'].values == 'Total Geral'].copy(deep=True)
 dis_solic_semana_0 = distr_soli_por_grupo_Hora11.groupby(['Semana', 'Hora']).agg({'Solicitacoes': 'sum'}).reset_index()
-dis_solic_semana = dis_solic_semana_0.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
+dis_solic_semana = dis_solic_semana_0.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=False)
 ###################################
 # Model
 base_nn = base.groupby(['Dia'], as_index = False).agg({'Total Geral': 'sum'})
@@ -169,7 +169,7 @@ df_general_1 = df_general.copy(deep=True)
 df_general_1['Semana'] = df_general_1['Dia'].dt.day_name().map(semana)
 df_general_1 = df_general_1.loc[df_general_1['Dia'] <= '2024-01-31']
 df_predit01 = df_general_1.groupby(['Semana'], as_index = False).agg({'Previstos': 'sum', 'Reais': 'sum'})
-df_predit01 = df_predit01.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=False)
+df_predit01 = df_predit01.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
 base_model_2 = df_predit01.copy(deep=True)
 
 df_general_2 = df_general.copy(deep=True)
