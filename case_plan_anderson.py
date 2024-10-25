@@ -108,6 +108,8 @@ grafico_Q3_1 = gr_class.grQ3_1()
 grafico_Q3_2 = gr_class.grQ3_2()
 
 # Q4
+semana_ord = {'Domingo': 1, 'Segunda': 2, 'Terça': 3, 'Quarta': 4, 'Quinta' : 5, 'Sexta': 6, 'Sábado': 7}
+base_Q4_1 = base_Q4_1.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=False)
 grafico_Q4_1 = px.scatter(base_Q4_1, x='Hora', y='Semana', title = 'Volume de Solicitações por Semana por Hora',
                     color = 'Solicitacoes', size = 'Solicitacoes', orientation = 'v', height= 600, width= 800)
 
