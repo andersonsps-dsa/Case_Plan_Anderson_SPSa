@@ -160,7 +160,7 @@ def graphic(dataframe, period_col, real_col, predict_col):
     )
 
     fig_model.update_layout(
-        title='Comparativo de Reais e Previstos',
+        title='Comparativo entre dados Reais e Estimados (Previsão para os próximos 7 dias) ',
         xaxis_title=period_col,
         yaxis_title='Valores',
         barmode='group',  # Sobrepõe as barras para uma visualização comparativa
@@ -173,7 +173,7 @@ def graphic_semana(dataframe, period_col, real_col, predict_col, df_futuro):
     fig_model_sem.add_trace(go.Bar(
         x=dataframe[period_col],
         y=dataframe[real_col],
-        name= real_col,
+        name= 'Real (Média semanal)',
         marker_color='blue',
         opacity=0.7,
         text=round(dataframe[real_col], 1),
@@ -183,7 +183,7 @@ def graphic_semana(dataframe, period_col, real_col, predict_col, df_futuro):
     fig_model_sem.add_trace(go.Bar(
         x=dataframe[period_col],
         y=dataframe[predict_col],
-        name='Previstos (Período Real)',
+        name='Estimado (Média semanal)',
         marker_color='brown',
         opacity=0.5,
         text= round(dataframe[predict_col],1),
@@ -193,7 +193,7 @@ def graphic_semana(dataframe, period_col, real_col, predict_col, df_futuro):
     fig_model_sem.add_trace(go.Bar(
         x=df_futuro[period_col],
         y=df_futuro[predict_col],
-        name='Previstos (Para os próximos 7 dias)',
+        name='Estimado (Para os próximos 7 dias)',
         marker_color='black',
         opacity=0.5,
         text=round(df_futuro[predict_col], 1),
@@ -209,7 +209,7 @@ def graphic_semana(dataframe, period_col, real_col, predict_col, df_futuro):
     )
 
     fig_model_sem.update_layout(
-        title='Comparativo de Reais e Previstos',
+        title='Comparativo entre Solicitações Realizadas x Estimadas | Previsão para os próximos 7 dias ',
         xaxis_title=period_col,
         yaxis_title='Valores',
         barmode='group',  # Sobrepõe as barras para uma visualização comparativa
@@ -246,15 +246,18 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(['Questão 1', 'Questão 2', 'Questão 3'
 
 # Questão 1
 with tab1:
-    st.header(' ⁂ 1 - Alocação de Pessoas por Canal:')
+    st.header(' ⁂ 1 - Determinar a quantidade de pessoas necessárias e a melhor alocação para entregar a melhor disponibilidade, performance e qualidade ao nosso cliente:')
     st.write('Para melhor disponibilidade, performance e qualidade ao nosso cliente:')
     st.markdown(f''' 
-    Considerando os dados fornecidos e objetivando o cumprimento da produtividade diária por colaborador, fornecendo \numa ótima entrega quanto a disponibilidade, performance e qualidade aos nossos clientes, seguem os detalhamentos \ndas quantidades de pessoas para cada Canal conforme detalhamento abaixo: \n 
-    ✔ E-mail: {pessoas_email_ajustado}
-    ✔ Chat: {pessoas_chat_ajustado} 
-    ✔ WhatsApp: {pessoas_whatsapp_ajustado}
+    Considerando os dados fornecidos, seguem os detalhamentos das quantidades de pessoas para cada Canal conforme detalhamento abaixo: \n 
+    ✔ E-mail: {pessoas_email_ajustado} \n
+    ✔ Chat: {pessoas_chat_ajustado} \n
+    ✔ WhatsApp: {pessoas_whatsapp_ajustado} \n
     ➤ Total do time: {pessoas_email_ajustado + pessoas_chat_ajustado + pessoas_whatsapp_ajustado}''')
     st.plotly_chart(grafico_Q1_1, use_container_width=True)
+    st.markdown('''
+                ***⚠ As solicitações realizadas fora do horário de atendimento (após as 22h) são remanejadas para o dia seguinte.***
+                ''')
 
 # Questão 2
 with tab2:
@@ -263,10 +266,10 @@ with tab2:
     st.markdown(f''' 
     De acordo com os dados, considerando uma melhoria de 20% em eficiência, foi obtivo as seguinites intepretações:\n 
     ✔ Custo atual total para o referido mês é: R$ {custo_total_atual:,.2f} \n 
-    ✔ Custo com 20% de melhoria de eficiência: R$ {custo_total_novo:,.2f} \n \n
-    Com isso proponho as segunites ações (sendo necessário verificar também a viabilidade): \n
-    ➥ Treinar a equipe para melhorar no tempo de atendimento
-    ➥ Implementação de chatbots para atender uma parcela das solicitações via whatsapp e chat
+    ✔ Custo com 20% de melhoria de eficiência: R$ {custo_total_novo:,.2f} \n \n\n
+    \nCom isso proponho as segunites ações (sendo necessário verificar também a viabilidade): \n
+    ➥ Treinar a equipe para melhorar no tempo de atendimento \n
+    ➥ Implementação de chatbots para atender uma parcela das solicitações via whatsapp e chat\n
     ➥ Automatizar respostas padrão por e-mail\n
     ''')
     st.plotly_chart(grafico_Q2_1, use_container_width=True)
@@ -282,6 +285,7 @@ with tab3:
         st.markdown(f'''
             Conclusão e sugestões: \n
             ➥ Redistribuir a equipe para cobrir melhor os horários de pico. \n
+            ➥ Foco nos dias com volumes de solicitações acima da média. \n
             ➥ No dia 30 existe uma demanda ainda maior, é interessante ter uma atenção junto a equipe para mantermos a qualidade nos atendimentos. \n
             ➥ Com isso, é interessante a implementação dos chatsbots e templetes de e-mail para dar maior fluidez no atendimento.\n
                 ''')
@@ -312,9 +316,10 @@ with tab5:
     st.write('Dados importantes: Previsão de 10 dias para frente || Período de Aprendizagem: últimos 12 dias')
     col_M1, col_M2, col_M3 = st.columns(3)
     with col_M1:
-        input_ord = st.number_input('Selecione abaixo entre a 1ª e 5ª semana do mês para visualizar no gráfico e 0 para o gráfico completo:', 
-                              value = 0, min_value = 0, max_value= 5, step = 1, label_visibility = 'collapsed')
-    
+        input_ord = st.number_input('***Escolha entre a 1ª e 5ª semana do mês no filtro abaixo ou 0 para visão mensal:***', 
+                              value = 0, min_value = 0, max_value= 5, step = 1, label_visibility = 'visible')
+    with col_M2:
+        st.markdown(''' ''')
     if input_ord == 0:
       df_tempo = df_tempo
     else:
