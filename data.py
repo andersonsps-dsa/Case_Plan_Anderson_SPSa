@@ -191,7 +191,6 @@ pred_fut_inv = scaler.inverse_transform(np.array(future_pred).reshape(-1, 1)).as
 fut_dia = [ultimo_dia + pd.DateOffset(days=i) for i in range(0, num_dias)]
 future = pd.DataFrame({'Dia': fut_dia, 'Previstos': pred_fut_inv.flatten()})
 df_general = pd.concat([df_Real_Pred[['Dia', 'Reais', 'Previstos']],future], ignore_index=True)
-df_general['Previstos'] = df_general['Previstos'].astype(int)
 #####
 
 df_general_1 = df_general.copy(deep=True)
@@ -200,6 +199,8 @@ df_general_1['Semana'] = df_general_1['Dia'].dt.day_name().map(semana)
 df_general_1 = df_general_1.loc[df_general_1['Dia'] <= '2024-01-31']
 df_predit01 = df_general_1.groupby(['Semana'], as_index = False).agg({'Previstos': 'mean', 'Reais': 'mean'})
 df_predit01 = df_predit01.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
+df_predit01['Previstos'] = df_predit01['Previstos'].astype(int)
+df_predit01['Reais'] = df_predit01['Reais'].astype(int)
 # base_model_2 = df_predit01.copy(deep=True)
 
 df_general_2 = df_general.copy(deep=True)
@@ -207,6 +208,8 @@ df_general_2['Semana'] = df_general_2['Dia'].dt.day_name().map(semana)
 df_general_2 = df_general_2.loc[df_general_2['Dia'] > '2024-01-31']
 df_predit02 = df_general_2.groupby(['Semana'], as_index = False).agg({'Previstos': 'sum', 'Reais': 'sum'})
 df_predit02 = df_predit02.sort_values(by = 'Semana', key = lambda x: x.map(semana_ord), ascending=True)
+df_predit02['Previstos'] = df_predit02['Previstos'].astype(int)
+df_predit02['Reais'] = df_predit02['Reais'].astype(int)
 # base_model_3 = df_predit02.copy(deep=True)
 
 # Questão 1
