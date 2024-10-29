@@ -191,6 +191,7 @@ pred_fut_inv = scaler.inverse_transform(np.array(future_pred).reshape(-1, 1)).as
 fut_dia = [ultimo_dia + pd.DateOffset(days=i) for i in range(0, num_dias)]
 future = pd.DataFrame({'Dia': fut_dia, 'Previstos': pred_fut_inv.flatten()})
 df_general = pd.concat([df_Real_Pred[['Dia', 'Reais', 'Previstos']],future], ignore_index=True)
+df_general['Previstos'] = df_general['Previstos'].astype(int)
 #####
 
 df_general_1 = df_general.copy(deep=True)
