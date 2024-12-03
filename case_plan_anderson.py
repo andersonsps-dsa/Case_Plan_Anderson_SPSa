@@ -239,7 +239,7 @@ Q2_efic_custo_canal_mes = pd.melt(Q2_efic_custo_canal_mes_0, id_vars='Canal', va
                                   var_name='Tipo', value_name='Custo')
 
 # Início do Streamlit
-st.title('Análise Atendimento ao Cliente de modo online')
+st.title('Análise de Atendimento ao Cliente no Ambiente Online')
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(['Análise 1', 'Análise 2', 'Análise 3', 'Análise 4', 'Modelo Preditivo'])
 
