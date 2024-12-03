@@ -239,17 +239,15 @@ Q2_efic_custo_canal_mes = pd.melt(Q2_efic_custo_canal_mes_0, id_vars='Canal', va
                                   var_name='Tipo', value_name='Custo')
 
 # Início do Streamlit
-st.title('Case Planejamento - Contabilizei')
-st.header('Anderson Sousa Pereira Sá')
+st.title('Análise Atendimento ao Cliente de modo online')
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(['Questão 1', 'Questão 2', 'Questão 3', 'Questão 4', 'Modelo Preditivo'])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(['Análise 1', 'Análise 2', 'Análise 3', 'Análise 4', 'Modelo Preditivo'])
 
-# Questão 1
+# Análise 1
 with tab1:
-    st.header(' ⁂ 1 - Determinar a quantidade de pessoas necessárias e a melhor alocação para entregar a melhor disponibilidade, performance e qualidade ao nosso cliente:')
-    st.write('Para melhor disponibilidade, performance e qualidade ao nosso cliente:')
+    st.header(' ⁂ 1 - Análise do número ideal de colaboradores e sua alocação estratégica para garantir a máxima disponibilidade, desempenho e qualidade na entrega de serviços ao cliente:')
     st.markdown(f''' 
-    Considerando os dados fornecidos, seguem os detalhamentos das quantidades de pessoas para cada Canal conforme detalhamento abaixo: \n 
+    Considerando os dados fornecidos, seguem os detalhamentos das quantidades para cada Canal de atendimento conforme detalhamento abaixo: \n 
     ✔ E-mail: {pessoas_email_ajustado} \n
     ✔ Chat: {pessoas_chat_ajustado} \n
     ✔ WhatsApp: {pessoas_whatsapp_ajustado} \n
@@ -259,9 +257,9 @@ with tab1:
                 ***⚠ As solicitações realizadas fora do horário de atendimento (após as 22h) são remanejadas para o dia seguinte.***
                 ''')
 
-# Questão 2
+# Análise 2
 with tab2:
-    st.header('⁂ 2 - Propor ações para melhorarmos 20% de eficiência, considerando nossa performance o custo de hc em R$ 6.000,00')
+    st.header('⁂ 2 - Ações estratégicas para alcançar um aumento de 20% na eficiência, com foco na performance da equipe e considerando o custo de headcount de R$ 6.000,00:')
     st.write(f'Custo total atual: R$ {custo_total_atual:,.2f}')
     st.markdown(f''' 
     De acordo com os dados, considerando uma melhoria de 20% em eficiência, foi obtivo as seguinites intepretações:\n 
@@ -274,9 +272,9 @@ with tab2:
     ''')
     st.plotly_chart(grafico_Q2_1, use_container_width=True)
 
-# Questão 3
+# Análise 3
 with tab3:
-    st.header('⁂ 3 - Quais são os principais insights que você levaria para o Diretor do time para melhorar tempo de resolução?')
+    st.header('⁂ 3 - Insights para melhorar tempo de resolução:')
     colQ3_1, colQ3_2 = st.columns(2)
     if "visibility" not in st.session_state:
         st.session_state.visibility = "visible"
@@ -299,9 +297,9 @@ with tab3:
     else:
         st.plotly_chart(grafico_Q3_2, use_container_width=True)
 
-# Questão 4
+# Análise 4
 with tab4:
-    st.header('⁂ 4 - Quais insights podem ser gerados a respeito do comportamento dos nossos clientes a partir destas informações? Você teria alguma recomendação adicional?')
+    st.header('⁂ 4 - Análise do comportamento dos clientes:')
     st.markdown(f''' 
             Insights para tomada de decisões:\n
             ➥ Ajustar o horário de operação para cobrir melhor os horários de maior demanda.\n
